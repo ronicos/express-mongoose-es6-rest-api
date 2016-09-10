@@ -13,6 +13,8 @@ import winstonInstance from './winston';
 import routes from '../server/routes';
 import config from './env';
 import APIError from '../server/helpers/APIError';
+import graffiti from '@risingstack/graffiti';
+import { schema } from '../server/graphql';
 
 const app = express();
 
@@ -40,7 +42,7 @@ if (config.env === 'development') {
   expressWinston.responseWhitelist.push('body');
   app.use(expressWinston.logger({
     winstonInstance,
-    meta: true, 	// optional: log meta data about request (defaults to true)
+    meta: false, 	// optional: log meta data about request (defaults to true)
     msg: 'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
     colorStatus: true 	// Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
   }));
@@ -48,6 +50,12 @@ if (config.env === 'development') {
 
 // mount all routes on /api path
 app.use('/api', routes);
+
+// graphql with graffiti
+app.use(graffiti.express({
+  schema,
+  context: {} // custom context
+}));
 
 // if error is not an instanceOf APIError, convert it.
 app.use((err, req, res, next) => {
