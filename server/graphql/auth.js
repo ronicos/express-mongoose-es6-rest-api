@@ -1,8 +1,8 @@
-const isAuthorised = (next) => {
+const isAuthorised = () => {
   // console.log('authorizing');
   // throw new Error('unauthorised');
 
-  next();
+  // next();
 };
 
 export { isAuthorised };
