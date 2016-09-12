@@ -1,8 +1,35 @@
-const isAuthorised = () => {
-  // console.log('authorizing');
-  // throw new Error('unauthorised');
+import { verify } from 'jsonwebtoken';
+import config from '../../config/env';
 
-  // next();
+const getToken = (req) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    const values = authHeader.split(' ');
+    const tokenType = values[0];
+
+    if (tokenType === 'Bearer') {
+      return authHeader.split(' ')[1];
+    }
+
+    if (req.query && req.query.token) {
+      return req.query.token;
+    }
+    return null;
+  }
+
+  return null;
 };
 
-export { isAuthorised };
+const validateAuth = (request) => {
+  const error = new Error('Failed to authenticate token');
+  const token = getToken(request);
+
+  if (!token) {
+    return error;
+  }
+
+  return verify(token, config.jwtSecret);
+};
+
+export { validateAuth };
