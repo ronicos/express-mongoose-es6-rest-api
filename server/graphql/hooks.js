@@ -6,8 +6,9 @@ const createOperation = (model, queryType) => {
   const collection    = model.fieldName;
   const accessModel   = queryType === queryTypes.plural ? model.returnType.ofType.name : model.returnType.name;
   const operationType = model.operation.operation;
+  const operation = { collection, operationType, accessModel, queryType }
 
-  return { collection, operationType, accessModel, queryType }
+  return operation;
 };
 
 const authHook = (next, user, model, queryType) => {
