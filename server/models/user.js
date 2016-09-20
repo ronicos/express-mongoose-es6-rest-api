@@ -2,6 +2,7 @@ import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
+import { roles } from '../constants/roles';
 
 /**
  * User Schema
@@ -19,7 +20,12 @@ const UserSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  roles: [{
+    type: String,
+    enum: Object.keys(roles),
+    default: roles.user
+  }],
 });
 
 /**

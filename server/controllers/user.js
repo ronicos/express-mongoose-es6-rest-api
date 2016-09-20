@@ -1,4 +1,5 @@
 import User from '../models/user';
+import { roles } from '../constants/roles';
 
 /**
  * Load user and append to req.
@@ -27,7 +28,8 @@ function get(req, res) {
 function create(req, res, next) {
   const user = new User({
     username: req.body.username,
-    mobileNumber: req.body.mobileNumber
+    mobileNumber: req.body.mobileNumber,
+    roles: [roles.user]
   });
 
   user.saveAsync()

@@ -1,74 +1,56 @@
-import { validateAuth } from './auth';
+import { decode } from './auth';
+import { hasAccess } from './permissions';
+import { queryTypes } from '../constants/query-types';
 
-const viewerHook = (next, root) => { // , root, args, request
-  console.log('viewerHook');
-
-  const data = validateAuth(root.request);
-
-  next(data);
-};
-
-const singularHook = (next, root, args, request, model) => {
-  const collection = model.fieldName;
+const createOperation = (model, queryType) => {
+  const collection    = model.fieldName;
+  const accessModel   = queryType === queryTypes.plural ? model.returnType.ofType.name : model.returnType.name;
   const operationType = model.operation.operation;
 
-  const operation = { collection, operationType };
-
-  console.log('singularHook', operation);
-
-  const data = validateAuth(root.request);
-
-  next(data);
-  next(data);
+  return { collection, operationType, accessModel, queryType }
 };
 
-const pluralHook = (next, root, args, request, model) => {
-  const collection = model.fieldName;
-  const operationType = model.operation.operation;
+const authHook = (next, user, model, queryType) => {
+  const operation     = createOperation(model, queryType);
+  const userHasAccess = hasAccess(operation, user);
 
-  const operation = { collection, operationType };
+  next();
 
-  console.log('pluralHook', operation);
-
-  const data = validateAuth(root.request);
-
-  next(data);
-
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), 4000);
-  });
+  return new Promise((resolve, reject) => userHasAccess ? resolve(next(user)) : reject('access denied'));
 };
 
-const mutationHook = (next, root) => {
-  console.log('mutationHook');
-
-  const data = validateAuth(root.request);
-
-  next(data);
-};
-
-const post = (next, value) => {  // , value
-  console.log('value', value);
+const post = (next) => {  // , value
+  // console.log('value', value);
   next();
 };
 
-const hooks = {
-  viewer: {
-    pre: viewerHook,
-    post,
-  },
-  singular: {
-    pre: singularHook,
-    post,
-  },
-  plural: {
-    pre: pluralHook,
-    post,
-  },
-  mutation: {
-    pre: mutationHook,
-    post,
+const createHook = (queryType) => {
+  return {
+    [queryType]: {
+      pre: function () {
+        try {
+          const next    = arguments[0];
+          const request = arguments[1].request;
+          const model   = arguments[4];
+          const user    = decode(request);
+
+          return authHook.apply(null, [next, user, model, queryType]);
+        }
+        catch (e) {
+          console.log('e', e);
+        }
+      },
+    }
   }
 };
+
+const createHooks = () => {
+  const hooksArray = Object.keys(queryTypes).map((key) => createHook(key));
+  const hooks      = Object.assign.apply(Object, [{}].concat(hooksArray));
+
+  return hooks;
+};
+
+const hooks = createHooks();
 
 export { hooks };

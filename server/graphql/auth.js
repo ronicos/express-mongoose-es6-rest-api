@@ -21,7 +21,7 @@ const getToken = (req) => {
   return null;
 };
 
-const validateAuth = (request) => {
+const decode = (request) => {
   const error = new Error('Failed to authenticate token');
   const token = getToken(request);
 
@@ -32,4 +32,4 @@ const validateAuth = (request) => {
   return verify(token, config.jwtSecret);
 };
 
-export { validateAuth };
+export { decode };

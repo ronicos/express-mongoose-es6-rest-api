@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLString } from 'graphql';
+import { GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLID } from 'graphql';
 
 const TestQuery = new GraphQLObjectType({
   name: 'TestQuery',
@@ -7,7 +7,7 @@ const TestQuery = new GraphQLObjectType({
     fetchCount: {
       name: 'fetchCount',
       type: GraphQLString,
-      resolve: () => '42'
+      resolve: () => Promise.resolve('42')
     }
   })
 });
